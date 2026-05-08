@@ -1,0 +1,557 @@
+{
+  "info": {
+    "name": "Vault DAM — API Collection",
+    "_postman_id": "vault-dam-collection-v1",
+    "description": "Complete Postman collection for the Vault Digital Asset Management System API.\n\nBase URL: http://localhost:5000\n\n**Setup:**\n1. Start your backend: `npm run dev` inside `/backend`\n2. Make sure MongoDB is running\n3. Set the `base_url` collection variable if needed\n\n**Upload tip:** For the Upload Asset request, go to Body → form-data, set `file` field type to **File**, then choose your file.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "asset_id",
+      "value": "",
+      "type": "string",
+      "description": "Auto-populated after Upload Asset request via test script"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the server is running."
+          },
+          "response": [
+            {
+              "name": "Server OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"OK\",\n  \"timestamp\": \"2024-11-03T10:00:00.000Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "Upload Asset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('asset_id', json.data._id);",
+                  "    console.log('✅ asset_id saved:', json.data._id);",
+                  "  }",
+                  "}",
+                  "",
+                  "pm.test('Status is 201 Created', () => {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success:true', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains asset data', () => {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data).to.have.property('_id');",
+                  "  pm.expect(data).to.have.property('fileUrl');",
+                  "  pm.expect(data).to.have.property('originalName');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select a JPG, PNG, PDF, or MP4 file (max 20MB)"
+                },
+                {
+                  "key": "tags",
+                  "value": "sample,test,demo",
+                  "type": "text",
+                  "description": "Comma-separated tags OR JSON array string like [\"tag1\",\"tag2\"]"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "upload"]
+            },
+            "description": "Upload a new file asset.\n\n**How to use:**\n1. Go to the Body tab\n2. Select form-data\n3. For the `file` key, change type from Text to **File** using the dropdown\n4. Choose your file\n5. Optionally add comma-separated tags\n\nThe response `_id` is automatically saved to the `asset_id` collection variable."
+          },
+          "response": [
+            {
+              "name": "Upload Success",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Asset uploaded successfully\",\n  \"data\": {\n    \"_id\": \"655c1a2b3d4e5f6a7b8c9d0e\",\n    \"filename\": \"1699000000-abc12345.jpg\",\n    \"originalName\": \"photo.jpg\",\n    \"mimetype\": \"image/jpeg\",\n    \"size\": 204800,\n    \"tags\": [\"sample\", \"test\", \"demo\"],\n    \"uploadDate\": \"2024-11-03T10:00:00.000Z\",\n    \"path\": \"/app/backend/uploads/1699000000-abc12345.jpg\",\n    \"fileUrl\": \"http://localhost:5000/uploads/1699000000-abc12345.jpg\"\n  }\n}"
+            },
+            {
+              "name": "No File Attached",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"error\": \"No file uploaded. Please attach a file.\"\n}"
+            },
+            {
+              "name": "Unsupported File Type",
+              "status": "Unsupported Media Type",
+              "code": 415,
+              "body": "{\n  \"success\": false,\n  \"error\": \"Unsupported file type: text/plain. Allowed types: JPG, PNG, PDF, MP4\"\n}"
+            },
+            {
+              "name": "File Too Large",
+              "status": "Payload Too Large",
+              "code": 413,
+              "body": "{\n  \"success\": false,\n  \"error\": \"File too large. Maximum allowed size is 20MB.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Assets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success:true', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response has data array', () => {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', () => {",
+                  "  pm.expect(pm.response.json().pagination).to.have.property('total');",
+                  "  pm.expect(pm.response.json().pagination).to.have.property('totalPages');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "12",
+                  "description": "Items per page (default: 12, max: 50)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search by filename (partial match, case-insensitive)",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": "Filter by type: image | pdf | video",
+                  "disabled": true
+                },
+                {
+                  "key": "tag",
+                  "value": "",
+                  "description": "Filter by tag (exact match)",
+                  "disabled": true
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": "Filter from date (ISO format: 2024-01-01)",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": "Filter to date (ISO format: 2024-12-31)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Fetch all assets with optional filtering and pagination.\n\nEnable query params as needed:\n- `search` — filename partial search\n- `type` — image / pdf / video\n- `tag` — exact tag match\n- `page` / `limit` — pagination\n- `startDate` / `endDate` — date range filter"
+          },
+          "response": [
+            {
+              "name": "All Assets",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"_id\": \"655c1a2b3d4e5f6a7b8c9d0e\",\n      \"filename\": \"1699000000-abc12345.jpg\",\n      \"originalName\": \"photo.jpg\",\n      \"mimetype\": \"image/jpeg\",\n      \"size\": 204800,\n      \"tags\": [\"sample\"],\n      \"uploadDate\": \"2024-11-03T10:00:00.000Z\",\n      \"fileUrl\": \"http://localhost:5000/uploads/1699000000-abc12345.jpg\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 1,\n    \"page\": 1,\n    \"limit\": 12,\n    \"totalPages\": 1,\n    \"hasNextPage\": false,\n    \"hasPrevPage\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Assets — Filter by Type (PDF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?type=pdf",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "type", "value": "pdf" }
+              ]
+            },
+            "description": "Fetch only PDF assets.\n\nOther valid values: `image`, `video`"
+          }
+        },
+        {
+          "name": "Get All Assets — Filter by Tag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?tag=invoice",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "tag", "value": "invoice" }
+              ]
+            },
+            "description": "Fetch assets with a specific tag. Replace `invoice` with any tag value."
+          }
+        },
+        {
+          "name": "Get All Assets — Search by Filename",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?search=report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "search", "value": "report" }
+              ]
+            },
+            "description": "Case-insensitive partial search on the original filename."
+          }
+        },
+        {
+          "name": "Get All Assets — Filter by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "startDate", "value": "2024-01-01" },
+                { "key": "endDate", "value": "2024-12-31" }
+              ]
+            },
+            "description": "Fetch assets uploaded within a date range."
+          }
+        },
+        {
+          "name": "Get All Assets — Paginated",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?page=1&limit=6",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "6" }
+              ]
+            },
+            "description": "Fetch page 1 with 6 results per page."
+          }
+        },
+        {
+          "name": "Get All Assets — Combined Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets?type=image&tag=demo&page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets"],
+              "query": [
+                { "key": "type", "value": "image" },
+                { "key": "tag", "value": "demo" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            },
+            "description": "Combine multiple filters: type + tag + pagination."
+          }
+        },
+        {
+          "name": "Get Asset by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has asset data', () => {",
+                  "  const data = pm.response.json().data;",
+                  "  pm.expect(data).to.have.property('_id');",
+                  "  pm.expect(data).to.have.property('fileUrl');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "{{asset_id}}"]
+            },
+            "description": "Fetch a single asset by its MongoDB `_id`.\n\nUses the `asset_id` variable — auto-populated by the Upload request's test script.\n\nOr replace `{{asset_id}}` in the URL with an actual ID."
+          },
+          "response": [
+            {
+              "name": "Asset Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"655c1a2b3d4e5f6a7b8c9d0e\",\n    \"filename\": \"1699000000-abc12345.jpg\",\n    \"originalName\": \"photo.jpg\",\n    \"mimetype\": \"image/jpeg\",\n    \"size\": 204800,\n    \"tags\": [\"sample\"],\n    \"uploadDate\": \"2024-11-03T10:00:00.000Z\",\n    \"path\": \"/app/backend/uploads/1699000000-abc12345.jpg\",\n    \"fileUrl\": \"http://localhost:5000/uploads/1699000000-abc12345.jpg\"\n  }\n}"
+            },
+            {
+              "name": "Asset Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"error\": \"Asset not found\"\n}"
+            },
+            {
+              "name": "Invalid ID Format",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"error\": \"Invalid asset ID format.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tags is an array', () => {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "tags"]
+            },
+            "description": "Fetch all unique tags from the database, sorted alphabetically."
+          },
+          "response": [
+            {
+              "name": "Tags List",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\"demo\", \"invoice\", \"marketing\", \"q3\", \"sample\", \"test\"]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Asset",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success:true', () => {",
+                  "  pm.expect(pm.response.json().success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Delete message present', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets/{{asset_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "{{asset_id}}"]
+            },
+            "description": "Delete an asset by ID. This removes both the database record and the physical file from disk.\n\n⚠️ This action is irreversible.\n\nUses the `asset_id` collection variable."
+          },
+          "response": [
+            {
+              "name": "Deleted Successfully",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Asset deleted successfully\"\n}"
+            },
+            {
+              "name": "Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"error\": \"Asset not found\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Static Files",
+      "item": [
+        {
+          "name": "View Uploaded File",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/uploads/REPLACE_WITH_FILENAME.jpg",
+              "host": ["{{base_url}}"],
+              "path": ["uploads", "REPLACE_WITH_FILENAME.jpg"]
+            },
+            "description": "Access an uploaded file directly by its stored filename.\n\nReplace `REPLACE_WITH_FILENAME.jpg` with the `filename` field from any asset response.\n\nExample: `http://localhost:5000/uploads/1699000000-abc12345.jpg`\n\nOpening this in a browser will preview or download the file depending on the type."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Upload — No File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "tags",
+                  "value": "test",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assets/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "upload"]
+            },
+            "description": "Triggers a 400 error — no file attached."
+          }
+        },
+        {
+          "name": "Get Asset — Invalid ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets/not-a-valid-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "not-a-valid-id"]
+            },
+            "description": "Triggers a 400 CastError — MongoDB ObjectId format is invalid."
+          }
+        },
+        {
+          "name": "Get Asset — Non-Existent ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/assets/655c000000000000000000ff",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assets", "655c000000000000000000ff"]
+            },
+            "description": "Valid ObjectId format but non-existent record — triggers 404."
+          }
+        },
+        {
+          "name": "Route Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/nonexistent",
+              "host": ["{{base_url}}"],
+              "path": ["api", "nonexistent"]
+            },
+            "description": "Triggers the 404 route handler."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface-900 text-surface-100 font-body antialiased;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(96, 112, 243, 0.07), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(96, 112, 243, 0.04), transparent);
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-850;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-surface-600;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-500 
+           text-white font-display font-semibold text-sm rounded-xl
+           transition-all duration-200 active:scale-95
+           shadow-lg shadow-brand-900/40 hover:shadow-brand-600/30;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-surface-850
+           text-surface-200 font-display font-medium text-sm rounded-xl
+           border border-surface-700 hover:border-surface-600
+           transition-all duration-200 active:scale-95
+           shadow-sm;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-2 text-surface-400 hover:text-surface-200
+           hover:bg-surface-800 rounded-lg transition-all duration-150 text-sm font-medium;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20
+           text-red-500 hover:text-red-600 rounded-lg border border-red-500/20
+           transition-all duration-150 text-sm font-medium;
+  }
+
+  .card {
+    @apply bg-white border border-surface-700/50 rounded-2xl overflow-hidden
+           transition-all duration-200 shadow-sm;
+  }
+
+  .card-hover {
+    @apply card hover:border-brand-400/50 hover:shadow-lg hover:shadow-brand-100/60
+           hover:-translate-y-0.5;
+  }
+
+  .input-field {
+    @apply w-full bg-white border border-surface-700 rounded-xl px-4 py-3
+           text-surface-100 placeholder-surface-500 text-sm
+           focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
+           transition-all duration-200 shadow-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-medium;
+  }
+
+  .badge-image {
+    @apply badge bg-emerald-50 text-emerald-600 border border-emerald-200;
+  }
+
+  .badge-pdf {
+    @apply badge bg-red-50 text-red-500 border border-red-200;
+  }
+
+  .badge-video {
+    @apply badge bg-violet-50 text-violet-600 border border-violet-200;
+  }
+
+  .badge-default {
+    @apply badge bg-surface-800 text-surface-400 border border-surface-700;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(0,0,0,0.04) 25%,
+      rgba(0,0,0,0.08) 50%,
+      rgba(0,0,0,0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .progress-bar {
+    @apply h-1.5 bg-surface-700 rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full
+           transition-all duration-300 ease-out;
+  }
+}

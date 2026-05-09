@@ -18,7 +18,7 @@ Built with **React + Vite + Tailwind CSS** on the frontend and **Node.js + Expre
 - ⬇️ **Download** and **view** files directly
 - 🏷️ **Tag system** (comma-separated, stored in DB)
 - 💀 **Loading skeletons** and empty/error states
-- 🌙 **Dark mode UI** — polished, modern design
+- 🌙 **Light mode UI** — polished, modern design
 
 ---
 
